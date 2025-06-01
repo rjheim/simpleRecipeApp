@@ -143,25 +143,22 @@ class NetworkCacheManagerTests: XCTestCase {
         await mockProtocol.setupMock(url: testURL, data: testData)
         let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockProtocol)
 
-        await cacheManager.clearCache()
-        let isCached = await cacheManager.isCached(url: testURL)
-        XCTAssertFalse(isCached, "Cache should be empty initially")
-
-        await mockProtocol.setupMock(url: testURL, data: testData)
+        _ = try await cacheManager.fetchData(from: testURL)
         _ = try await cacheManager.fetchData(from: testURL)
 
-        // Verify data is now cached
-        let isCached2 = await cacheManager.isCached(url: testURL)
-        XCTAssertTrue(isCached2, "Data should be cached after fetch")
+        let (memory, disk) = await cacheManager.getCacheSize()
+        XCTAssertNotEqual(memory, 0)
+        XCTAssertNotEqual(disk, 0)
 
-        // Verify cached data is correct
+        let isCached = await cacheManager.isCached(url: testURL)
+        XCTAssertTrue(isCached, "Data should be cached after fetch")
+
         let cachedResponse = try await cacheManager.fetchData(from: testURL)
         XCTAssertEqual(cachedResponse, testData, "Cached data should match original")
     }
 
 
     // MARK: - Multiple Mock Protocol Test
-
     func testMultipleMockSetups() async throws {
         let url1 = URL(string: "https://example.com/data1")!
         let url2 = URL(string: "https://example.com/data2")!
@@ -179,6 +176,35 @@ class NetworkCacheManagerTests: XCTestCase {
         XCTAssertEqual(fetchedData1, data1, "Should return correct data for URL1")
         XCTAssertEqual(fetchedData2, data2, "Should return correct data for URL2")
         XCTAssertNotEqual(fetchedData1, fetchedData2, "Data should be different for different URLs")
+    }
+
+    func testTimeToLive() async throws {
+        let url1 = URL(string: "https://example.com/data1")!
+        let data1 = "Data 1".data(using: .utf8)!
+        let data2 = "Data 2".data(using: .utf8)!
+
+        let mockProtocol = MockURLSessionProtocol()
+        await mockProtocol.setupMock(url: url1, data: data1)
+        let cacheManager = NetworkCacheManager.createTestInstance(
+            urlSessionProtocol: mockProtocol,
+            configuration: CacheConfiguration(
+                memoryCapacity: 50 * 1024 * 1024,
+                diskCapacity: 100 * 1024 * 1024,
+                timeToLive: 5,
+                acceptableResponseRange: (200...299),
+                cacheDirectory: nil
+            )
+        )
+
+        let fetchedData1 = try await cacheManager.fetchData(from: url1)
+        await mockProtocol.clearMocks()
+        await mockProtocol.setupMock(url: url1, data: data2)
+
+        try await Task.sleep(for: .seconds(6))
+
+        let fetchedData2 = try await cacheManager.fetchData(from: url1)
+
+        XCTAssertNotEqual(fetchedData1, fetchedData2)
     }
 }
 

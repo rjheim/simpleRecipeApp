@@ -87,14 +87,6 @@ public final actor NetworkCacheManager: CacheManager {
         urlCache.removeCachedResponse(for: request)
     }
 
-    public func clearCache() {
-        urlCache.removeAllCachedResponses()
-    }
-
-    public func getCacheSize() -> (memory: Int, disk: Int) {
-        return (urlCache.currentMemoryUsage, urlCache.currentDiskUsage)
-    }
-
     // MARK: - Network Request with Caching
     public func fetchData(
         from url: URL,
@@ -133,6 +125,15 @@ public final actor NetworkCacheManager: CacheManager {
         }
 
         return Image(uiImage: image)
+    }
+
+    // MARK: - Cache Clear and Size
+    public func clearCache() {
+        urlCache.removeAllCachedResponses()
+    }
+
+    public func getCacheSize() -> (memory: Int, disk: Int) {
+        return (urlCache.currentMemoryUsage, urlCache.currentDiskUsage)
     }
 }
 
