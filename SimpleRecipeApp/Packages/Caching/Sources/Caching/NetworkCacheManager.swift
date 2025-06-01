@@ -5,14 +5,15 @@
 //  Created by RJ Heim on 6/1/25.
 //
 
+import CachingInterfaces
 import Foundation
 import SwiftUI
 
 public final actor NetworkCacheManager: CacheManager {
     private let configuration: CacheConfiguration
     private let urlCache: URLCache
-    private let session: URLSession
-    private let userDefaults: UserDefaults
+    private let session: URLSessionProtocol
+    private let timeToLiveManager: TimeToLiveManager
 
     public init(configuration: CacheConfiguration = .default) {
         if let cacheDirectory = configuration.cacheDirectory,
@@ -38,8 +39,29 @@ public final actor NetworkCacheManager: CacheManager {
 
         self.configuration = configuration
         self.session = URLSession(configuration: config)
-        self.userDefaults = UserDefaults(suiteName: .userDefaultsSuiteName) ?? UserDefaults()
+        self.timeToLiveManager = UserDefaults.timeToLiveManager()
     }
+
+#if DEBUG
+
+    init(
+        configuration: CacheConfiguration,
+        urlCache: URLCache,
+        urlSession: URLSessionProtocol,
+        timeToLiveManager: TimeToLiveManager
+    ) {
+        self.configuration = configuration
+        self.urlCache = urlCache
+        self.session = urlSession
+        self.timeToLiveManager = timeToLiveManager
+    }
+
+
+    func isCached(url: URL) -> Bool {
+        self.getCachedResponse(for: URLRequest(url: url)) != nil
+    }
+
+#endif
 
     // MARK: - Cache Management Methods
     private func cacheResponse(for request: URLRequest, response: URLResponse, data: Data) {
@@ -48,12 +70,12 @@ public final actor NetworkCacheManager: CacheManager {
         guard let url = request.url else {
             return
         }
-        userDefaults.saveTimeToLive(url: url, timeToLive: configuration.timeToLive)
+        timeToLiveManager.saveTimeToLive(url: url, timeToLive: configuration.timeToLive)
     }
 
     private func getCachedResponse(for request: URLRequest) -> CachedURLResponse? {
         guard let url = request.url,
-              let timeToLiveDate = userDefaults.getTimeToLive(url: url),
+              let timeToLiveDate = timeToLiveManager.getTimeToLive(url: url),
               timeToLiveDate > .now else {
             removeCachedResponse(for: request)
             return nil
@@ -65,16 +87,16 @@ public final actor NetworkCacheManager: CacheManager {
         urlCache.removeCachedResponse(for: request)
     }
 
-    func clearCache() {
+    public func clearCache() {
         urlCache.removeAllCachedResponses()
     }
 
-    func getCacheSize() -> (memory: Int, disk: Int) {
+    public func getCacheSize() -> (memory: Int, disk: Int) {
         return (urlCache.currentMemoryUsage, urlCache.currentDiskUsage)
     }
 
     // MARK: - Network Request with Caching
-    func fetchData(
+    public func fetchData(
         from url: URL,
         cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
     ) async throws(CachingNetworkError) -> Data {
@@ -100,7 +122,7 @@ public final actor NetworkCacheManager: CacheManager {
         }
     }
 
-    func fetchImage(
+    public func fetchImage(
         from url: URL,
         cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
     ) async throws(CachingNetworkError) -> Image {
@@ -126,7 +148,7 @@ extension NetworkCacheManager {
 
     private func fetchDataAndCache(_ request: URLRequest) async throws(CachingNetworkError) -> Data {
         do {
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await session.data(for: request, delegate: nil)
 
             // Cache the response if it's cacheable
             try shouldCacheResponse(response)
@@ -137,6 +159,8 @@ extension NetworkCacheManager {
         } catch {
             if let urlError = error as? URLError {
                 throw CachingNetworkError.networkError(underlyingError: urlError)
+            } else if let cachingError = error as? CachingNetworkError {
+                throw cachingError
             } else {
                 throw CachingNetworkError.unknownError(underlyingError: error)
             }
@@ -152,23 +176,5 @@ extension NetworkCacheManager {
         guard configuration.acceptableResponseRange.contains(httpResponse.statusCode) else {
             throw CachingNetworkError.invalidResponse(statusCode: httpResponse.statusCode)
         }
-    }
-}
-
-private extension String {
-    static let userDefaultsSuiteName: String = "cacheHelper"
-}
-
-private extension UserDefaults {
-    func getTimeToLive(url: URL) -> Date? {
-        let key: String = .userDefaultsSuiteName + url.absoluteString
-
-        return self.object(forKey: key) as? Date
-    }
-
-    func saveTimeToLive(url: URL, timeToLive: TimeInterval) {
-        let key: String = .userDefaultsSuiteName + url.absoluteString
-
-        self.set(Date(timeIntervalSinceNow: timeToLive), forKey: key)
     }
 }

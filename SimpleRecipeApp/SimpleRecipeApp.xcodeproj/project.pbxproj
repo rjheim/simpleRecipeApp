@@ -97,6 +97,7 @@
 				B69C1CDC2DECBBE8005A096A /* SimpleRecipeApp */,
 				B69C1CEA2DECBBEA005A096A /* SimpleRecipeAppTests */,
 				B69C1CF42DECBBEA005A096A /* SimpleRecipeAppUITests */,
+				B6F7CC662DECF4D900D4C8A8 /* Frameworks */,
 				B69C1CDB2DECBBE8005A096A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -109,6 +110,13 @@
 				B69C1CF12DECBBEA005A096A /* SimpleRecipeAppUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B6F7CC662DECF4D900D4C8A8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -434,6 +442,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = rjheim.SimpleRecipeApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -463,6 +472,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = rjheim.SimpleRecipeApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

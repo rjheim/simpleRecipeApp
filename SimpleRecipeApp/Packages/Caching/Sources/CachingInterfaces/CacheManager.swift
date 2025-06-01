@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-protocol CacheManager: Actor {
+public protocol CacheManager: Actor {
     func fetchData(
         from url: URL,
         cachePolicy: URLRequest.CachePolicy

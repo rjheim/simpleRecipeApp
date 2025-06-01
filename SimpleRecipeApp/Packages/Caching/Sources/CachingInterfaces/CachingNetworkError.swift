@@ -75,3 +75,27 @@ extension CachingNetworkError: CustomNSError {
         return info
     }
 }
+
+extension CachingNetworkError: Equatable {
+    public static func == (lhs: CachingNetworkError, rhs: CachingNetworkError) -> Bool {
+        switch (lhs, rhs) {
+        case (.noCachedData, .noCachedData):
+            return true
+
+        case (.invalidResponse(let statusCodeLHS), .invalidResponse(statusCode: let statusCodeRHS)):
+            return statusCodeLHS == statusCodeRHS
+
+        case (.networkError(let errorLHS), .networkError(underlyingError: let errorRHS)):
+            return errorLHS.code == errorRHS.code
+
+        case (.unknownError(underlyingError: let errorLHS), .unknownError(underlyingError: let errorRHS)):
+            return errorLHS as NSError == errorRHS as NSError
+
+        case (.invalidImageData, .invalidImageData):
+            return true
+
+        default:
+            return false
+        }
+    }
+}

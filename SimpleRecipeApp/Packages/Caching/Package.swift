@@ -14,16 +14,25 @@ let package = Package(
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "Caching",
-            targets: ["Caching"]),
+            targets: ["Caching"]
+        ),
+        .library(
+            name: "CachingInterfaces",
+            targets: ["CachingInterfaces"]
+        )
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "Caching"),
+            name: "Caching",
+            dependencies: ["CachingInterfaces"]
+        ),
         .testTarget(
             name: "CachingTests",
-            dependencies: ["Caching"]
+            dependencies: ["Caching"],
+            resources: [.process("cat.jpg")]
         ),
+        .target(name: "CachingInterfaces")
     ]
 )
