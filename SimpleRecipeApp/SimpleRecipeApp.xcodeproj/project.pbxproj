@@ -34,6 +34,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Caching,
+				RecipeFeature,
 			);
 			target = B69C1CD92DECBBE8005A096A /* SimpleRecipeApp */;
 		};
