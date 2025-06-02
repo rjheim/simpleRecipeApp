@@ -15,20 +15,39 @@ class NetworkCacheManagerTests: XCTestCase {
     var testData: Data = "Test response data".data(using: .utf8)!
 
     func testFetchDataSuccess() async throws {
-        let mockProtocol = MockURLSessionProtocol()
-        await mockProtocol.setupMock(url: testURL, data: testData)
-        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockProtocol)
+        let mockSession = MockURLSessionProtocol()
+        await mockSession.setupMock(url: testURL, data: testData)
+        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockSession)
 
         let fetchedData = try await cacheManager.fetchData(from: testURL)
 
         XCTAssertEqual(fetchedData, testData, "Fetched data should match mock data")
     }
 
+    func testFetchCacheSuccess() async throws {
+        let mockSession = MockURLSessionProtocol()
+        await mockSession.setupMock(url: testURL, data: testData)
+        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockSession)
+
+        let fetchedData = try await cacheManager.fetchData(from: testURL)
+
+        XCTAssertEqual(fetchedData, testData, "Fetched data should match mock data")
+
+        await mockSession.clearMocks()
+
+        do {
+            let cachedData = try await cacheManager.fetchData(from: testURL)
+            XCTAssertEqual(cachedData, fetchedData)
+        } catch {
+            XCTFail("Should have data in the cache.")
+        }
+    }
+
     func testFetchDataFailureURLError() async {
         let expectedError = URLError(.unknown)
-        let mockProtocol = MockURLSessionProtocol()
-        await mockProtocol.setupMockError(url: testURL, error: expectedError)
-        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockProtocol)
+        let mockSession = MockURLSessionProtocol()
+        await mockSession.setupMockError(url: testURL, error: expectedError)
+        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockSession)
 
         do {
             _ = try await cacheManager.fetchData(from: testURL)
@@ -40,17 +59,17 @@ class NetworkCacheManagerTests: XCTestCase {
     }
 
     func testFetchDataFailure() async {
-        let expectedError = CachingNetworkError.invalidResponse(statusCode: 400)
-        let mockProtocol = MockURLSessionProtocol()
-        await mockProtocol.setupMock(url: testURL, data: testData, statusCode: 400)
-        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockProtocol)
+        let expectedErrorStatusCode: Int = 400
+        let mockSession = MockURLSessionProtocol()
+        await mockSession.setupMock(url: testURL, data: testData, statusCode: expectedErrorStatusCode)
+        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockSession)
 
         do {
             _ = try await cacheManager.fetchData(from: testURL)
             XCTFail("Should have thrown an error")
         } catch {
             XCTAssertTrue(error is CachingNetworkError, "Should throw CachingNetworkError")
-            XCTAssertEqual((error.errorCode), 400)
+            XCTAssertEqual((error.errorCode), expectedErrorStatusCode)
         }
     }
 
@@ -61,9 +80,9 @@ class NetworkCacheManagerTests: XCTestCase {
             return
         }
         let imageData = try Data(contentsOf: catImage)
-        let mockProtocol = MockURLSessionProtocol()
-        await mockProtocol.setupMock(url: imageURL, data: imageData)
-        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockProtocol)
+        let mockSession = MockURLSessionProtocol()
+        await mockSession.setupMock(url: imageURL, data: imageData)
+        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockSession)
 
         let fetchedImage = try await cacheManager.fetchImage(from: imageURL)
 
@@ -72,9 +91,9 @@ class NetworkCacheManagerTests: XCTestCase {
 
     func testFetchImageInvalidData() async {
         let imageURL = URL(string: "https://example.com/invalid-image")!
-        let mockProtocol = MockURLSessionProtocol()
-        await mockProtocol.setupMock(url: imageURL, data: testData)
-        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockProtocol)
+        let mockSession = MockURLSessionProtocol()
+        await mockSession.setupMock(url: imageURL, data: testData)
+        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockSession)
 
         do {
             _ = try await cacheManager.fetchImage(from: imageURL)
@@ -87,9 +106,9 @@ class NetworkCacheManagerTests: XCTestCase {
     // MARK: - Cache Policy Tests
 
     func testCachePolicyReturnCacheDataElseLoad() async throws {
-        let mockProtocol = MockURLSessionProtocol()
-        await mockProtocol.setupMock(url: testURL, data: testData)
-        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockProtocol)
+        let mockSession = MockURLSessionProtocol()
+        await mockSession.setupMock(url: testURL, data: testData)
+        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockSession)
         _ = try await cacheManager.fetchData(from: testURL, cachePolicy: .useProtocolCachePolicy)
 
         let isCached = await cacheManager.isCached(url: testURL)
@@ -97,7 +116,7 @@ class NetworkCacheManagerTests: XCTestCase {
         XCTAssertTrue(isCached, "Data should be cached")
 
         let newData = "New response data".data(using: .utf8)!
-        await mockProtocol.setupMock(url: testURL, data: newData)
+        await mockSession.setupMock(url: testURL, data: newData)
 
         let cachedData = try await cacheManager.fetchData(from: testURL, cachePolicy: .returnCacheDataElseLoad)
 
@@ -107,8 +126,8 @@ class NetworkCacheManagerTests: XCTestCase {
     }
 
     func testCachePolicyReturnCacheDataDontLoad() async {
-        let mockProtocol = MockURLSessionProtocol()
-        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockProtocol)
+        let mockSession = MockURLSessionProtocol()
+        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockSession)
 
         do {
             _ = try await cacheManager.fetchData(from: testURL, cachePolicy: .returnCacheDataDontLoad)
@@ -119,13 +138,13 @@ class NetworkCacheManagerTests: XCTestCase {
     }
 
     func testCachePolicyReloadIgnoringCache() async throws {
-        let mockProtocol = MockURLSessionProtocol()
-        await mockProtocol.setupMock(url: testURL, data: testData)
-        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockProtocol)
+        let mockSession = MockURLSessionProtocol()
+        await mockSession.setupMock(url: testURL, data: testData)
+        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockSession)
         _ = try await cacheManager.fetchData(from: testURL, cachePolicy: .useProtocolCachePolicy)
 
         let newData = "New response data".data(using: .utf8)!
-        await mockProtocol.setupMock(url: testURL, data: newData)
+        await mockSession.setupMock(url: testURL, data: newData)
 
         // Fetch ignoring cache
         let freshData = try await cacheManager.fetchData(from: testURL, cachePolicy: .reloadIgnoringLocalCacheData)
@@ -135,13 +154,9 @@ class NetworkCacheManagerTests: XCTestCase {
     }
 
     func testCacheStorage() async throws {
-        let mockProtocol = MockURLSessionProtocol()
-        await mockProtocol.setupMock(url: testURL, data: testData)
-        await mockProtocol.setupMock(url: testURL, data: testData)
-        await mockProtocol.setupMock(url: testURL, data: testData)
-        await mockProtocol.setupMock(url: testURL, data: testData)
-        await mockProtocol.setupMock(url: testURL, data: testData)
-        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockProtocol)
+        let mockSession = MockURLSessionProtocol()
+        await mockSession.setupMock(url: testURL, data: testData)
+        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockSession)
 
         _ = try await cacheManager.fetchData(from: testURL)
         _ = try await cacheManager.fetchData(from: testURL)
@@ -165,10 +180,10 @@ class NetworkCacheManagerTests: XCTestCase {
         let data1 = "Data 1".data(using: .utf8)!
         let data2 = "Data 2".data(using: .utf8)!
 
-        let mockProtocol = MockURLSessionProtocol()
-        await mockProtocol.setupMock(url: url1, data: data1)
-        await mockProtocol.setupMock(url: url2, data: data2)
-        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockProtocol)
+        let mockSession = MockURLSessionProtocol()
+        await mockSession.setupMock(url: url1, data: data1)
+        await mockSession.setupMock(url: url2, data: data2)
+        let cacheManager = NetworkCacheManager.createTestInstance(urlSessionProtocol: mockSession)
 
         let fetchedData1 = try await cacheManager.fetchData(from: url1)
         let fetchedData2 = try await cacheManager.fetchData(from: url2)
@@ -183,10 +198,10 @@ class NetworkCacheManagerTests: XCTestCase {
         let data1 = "Data 1".data(using: .utf8)!
         let data2 = "Data 2".data(using: .utf8)!
 
-        let mockProtocol = MockURLSessionProtocol()
-        await mockProtocol.setupMock(url: url1, data: data1)
+        let mockSession = MockURLSessionProtocol()
+        await mockSession.setupMock(url: url1, data: data1)
         let cacheManager = NetworkCacheManager.createTestInstance(
-            urlSessionProtocol: mockProtocol,
+            urlSessionProtocol: mockSession,
             configuration: CacheConfiguration(
                 memoryCapacity: 50 * 1024 * 1024,
                 diskCapacity: 100 * 1024 * 1024,
@@ -197,8 +212,8 @@ class NetworkCacheManagerTests: XCTestCase {
         )
 
         let fetchedData1 = try await cacheManager.fetchData(from: url1)
-        await mockProtocol.clearMocks()
-        await mockProtocol.setupMock(url: url1, data: data2)
+        await mockSession.clearMocks()
+        await mockSession.setupMock(url: url1, data: data2)
 
         try await Task.sleep(for: .seconds(6))
 
@@ -225,8 +240,7 @@ extension NetworkCacheManager {
             urlSession: urlSessionProtocol,
             timeToLiveManager: MockTimeToLiveManager()
         )
-        // Use reflection or create a new init method for testing
-        // For this example, we'll create a separate test manager
+
         return testManager
     }
 }

@@ -120,11 +120,11 @@ public final actor NetworkCacheManager: CacheManager {
     ) async throws(CachingNetworkError) -> Image {
         let data = try await fetchData(from: url, cachePolicy: cachePolicy)
 
-        guard let image = UIImage(data: data) else {
+        guard let image = Image(data: data) else {
             throw CachingNetworkError.invalidImageData
         }
 
-        return Image(uiImage: image)
+        return image
     }
 
     // MARK: - Cache Clear and Size

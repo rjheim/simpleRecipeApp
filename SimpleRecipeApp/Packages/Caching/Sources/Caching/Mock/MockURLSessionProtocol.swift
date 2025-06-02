@@ -22,9 +22,9 @@ actor MockURLSessionProtocol: URLSessionProtocol {
             throw URLError(.badServerResponse)
         }
 
-        if let (data, response) = mockData.removeValue(forKey: url) {
+        if let (data, response) = mockData[url] {
             return (data, response)
-        } else if let error = mockErrors.removeValue(forKey: url) {
+        } else if let error = mockErrors[url] {
             throw error
         } else {
             throw URLError(.badServerResponse)
