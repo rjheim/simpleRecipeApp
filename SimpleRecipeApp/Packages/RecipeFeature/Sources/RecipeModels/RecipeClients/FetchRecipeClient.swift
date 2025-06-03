@@ -5,6 +5,7 @@
 //  Created by RJ Heim on 6/2/25.
 //
 
+import CachingInterfaces
 import Foundation
 import RecipeInterface
 
@@ -14,37 +15,37 @@ public struct FetchRecipeClient: RecipeClient {
         let url: URL
     }
     let configuration: Configuration
-    let session: URLSession
+    let cacheManager: CacheManager
 
-    public init(session: URLSession, configuration: Configuration = .sample) {
-        self.session = session
+    // TODO: Let user pick caching policy and configuration
+    public init(cacheManager: CacheManager, configuration: Configuration = .sample) {
+        self.cacheManager = cacheManager
         self.configuration = configuration
     }
 
-    public func recipes() async throws(RecipeInterface.RecipeClientError) -> [RecipeInterface.Recipe] {
-        let request = URLRequest(url: configuration.url)
+    public func recipes(skipCache: Bool) async throws(RecipeClientError) -> [RecipeInterface.Recipe] {
         let data: Data
-        let response: URLResponse
+        let cachePolicy: NSURLRequest.CachePolicy = skipCache ? .reloadIgnoringLocalCacheData : .useProtocolCachePolicy
         do {
-            (data, response) = try await session.data(for: request)
+            data = try await cacheManager.fetchData(from: configuration.url, cachePolicy: cachePolicy)
+        } catch {
+            // TODO: Fix error handling
+            switch error {
+            case .noCachedData:
+                throw RecipeClientError.invalidResponseType
 
-            guard let httpResponse = response as? HTTPURLResponse else {
+            case .invalidResponse(statusCode: let statusCode):
+                throw RecipeClientError.invalidResponse(message: "Status code: \(statusCode)")
+
+            case .networkError(underlyingError: let underlyingError):
+                throw RecipeClientError.networkError(underlyingError: underlyingError)
+
+            case .unknownError(underlyingError: let underlyingError):
+                throw RecipeClientError.invalidResponseType
+
+            case .invalidImageData:
                 throw RecipeClientError.invalidResponseType
             }
-
-            switch httpResponse.statusCode {
-            case (200...299):
-                break
-
-            default:
-                throw RecipeClientError.invalidResponse(message: "Received invalid status code: \(httpResponse.statusCode)")
-            }
-        } catch {
-            guard let urlError = error as? URLError else {
-                throw RecipeClientError.networkError(underlyingError: URLError(.unknown))
-            }
-
-            throw RecipeClientError.networkError(underlyingError: urlError)
         }
 
         let fetchRecipes: FetchRecipes

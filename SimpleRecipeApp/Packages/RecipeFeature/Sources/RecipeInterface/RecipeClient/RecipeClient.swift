@@ -6,15 +6,15 @@
 //
 
 public protocol RecipeClient: Sendable {
-    func recipes() async throws(RecipeClientError) -> [Recipe]
+    func recipes(skipCache: Bool) async throws(RecipeClientError) -> [Recipe]
 }
 
 public struct RecipeClientSuccess: RecipeClient {
     public static let shared: RecipeClientSuccess = RecipeClientSuccess()
 
-    public func recipes() async throws(RecipeClientError) -> [Recipe] {
+    public func recipes(skipCache: Bool) async throws(RecipeClientError) -> [Recipe] {
         do {
-            try await Task.sleep(for: .seconds(1))
+            try await Task.sleep(for: .seconds(3))
         } catch {
             throw RecipeClientError.invalidResponseType
         }
@@ -24,11 +24,11 @@ public struct RecipeClientSuccess: RecipeClient {
 }
 
 public struct RecipeClientFailure: RecipeClient {
-    public static let shared: RecipeClientSuccess = RecipeClientSuccess()
+    public static let shared: RecipeClientFailure = RecipeClientFailure()
 
-    public func recipes() async throws(RecipeClientError) -> [Recipe] {
+    public func recipes(skipCache: Bool) async throws(RecipeClientError) -> [Recipe] {
         do {
-            try await Task.sleep(for: .seconds(1))
+            try await Task.sleep(for: .seconds(2))
         } catch {
             throw .invalidResponseType
         }
@@ -38,11 +38,11 @@ public struct RecipeClientFailure: RecipeClient {
 }
 
 public struct RecipeClientEmpty: RecipeClient {
-    public static let shared: RecipeClientSuccess = RecipeClientSuccess()
+    public static let shared: RecipeClientEmpty = RecipeClientEmpty()
 
-    public func recipes() async throws(RecipeClientError) -> [Recipe] {
+    public func recipes(skipCache: Bool) async throws(RecipeClientError) -> [Recipe] {
         do {
-            try await Task.sleep(for: .seconds(1))
+            try await Task.sleep(for: .seconds(0.5))
         } catch {
             throw RecipeClientError.invalidResponseType
         }

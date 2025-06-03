@@ -10,6 +10,7 @@ import Foundation
 public enum RecipeClientError: Error {
     case networkError(underlyingError: URLError)
     case invalidResponseType
+    // TODO: This could include more information in the future. Might need to make the error a struct instead.
     case invalidResponse(message: String)
     case decodingError(underlyingError: DecodingError)
 }
@@ -55,8 +56,9 @@ extension RecipeClientError: CustomNSError {
         ]
         switch self {
         case .networkError(underlyingError: let underlyingError):
-            info["networkUnavailableReason"] = underlyingError.networkUnavailableReason
             info["urlErrorCode"] = underlyingError.code
+            info["urlErrorLocalizedDescription"] = underlyingError.localizedDescription
+            info["networkUnavailableReason"] = underlyingError.networkUnavailableReason
 
         case .invalidResponse(message: let message):
             info["invalidResponseMessage"] = message
@@ -70,5 +72,26 @@ extension RecipeClientError: CustomNSError {
         }
 
         return info
+    }
+}
+
+extension RecipeClientError: Equatable {
+    public static func == (lhs: RecipeClientError, rhs: RecipeClientError) -> Bool {
+        switch (lhs, rhs) {
+        case (.networkError(underlyingError: let lhsError), .networkError(underlyingError: let rhsError)):
+            return lhsError == rhsError
+
+        case (.invalidResponse(message: let lhsMessage), .invalidResponse(message: let rhsMessage)):
+            return lhsMessage == rhsMessage
+
+        case (.decodingError(underlyingError: let lhsError), .decodingError(underlyingError: let rhsError)):
+            return (lhsError as NSError).code == (rhsError as NSError).code
+
+        case (.invalidResponseType, .invalidResponseType):
+            return true
+
+        default:
+            return false
+        }
     }
 }

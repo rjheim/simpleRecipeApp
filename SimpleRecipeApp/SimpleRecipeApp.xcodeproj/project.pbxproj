@@ -6,6 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B6DFFEBC2DEEA2920056E4EC /* RecipeFeature in Frameworks */ = {isa = PBXBuildFile; productRef = B6DFFEBB2DEEA2920056E4EC /* RecipeFeature */; };
+		B6DFFEBE2DEEA2920056E4EC /* RecipeInterface in Frameworks */ = {isa = PBXBuildFile; productRef = B6DFFEBD2DEEA2920056E4EC /* RecipeInterface */; };
+		B6DFFEC02DEEA2920056E4EC /* RecipeModels in Frameworks */ = {isa = PBXBuildFile; productRef = B6DFFEBF2DEEA2920056E4EC /* RecipeModels */; };
+		B6DFFEC22DEEA29C0056E4EC /* Caching in Frameworks */ = {isa = PBXBuildFile; productRef = B6DFFEC12DEEA29C0056E4EC /* Caching */; };
+		B6DFFEC42DEEA29C0056E4EC /* CachingInterfaces in Frameworks */ = {isa = PBXBuildFile; productRef = B6DFFEC32DEEA29C0056E4EC /* CachingInterfaces */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		B69C1CE82DECBBEA005A096A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -71,6 +79,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B6DFFEC22DEEA29C0056E4EC /* Caching in Frameworks */,
+				B6DFFEBE2DEEA2920056E4EC /* RecipeInterface in Frameworks */,
+				B6DFFEC02DEEA2920056E4EC /* RecipeModels in Frameworks */,
+				B6DFFEC42DEEA29C0056E4EC /* CachingInterfaces in Frameworks */,
+				B6DFFEBC2DEEA2920056E4EC /* RecipeFeature in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -141,6 +154,11 @@
 			);
 			name = SimpleRecipeApp;
 			packageProductDependencies = (
+				B6DFFEBB2DEEA2920056E4EC /* RecipeFeature */,
+				B6DFFEBD2DEEA2920056E4EC /* RecipeInterface */,
+				B6DFFEBF2DEEA2920056E4EC /* RecipeModels */,
+				B6DFFEC12DEEA29C0056E4EC /* Caching */,
+				B6DFFEC32DEEA29C0056E4EC /* CachingInterfaces */,
 			);
 			productName = SimpleRecipeApp;
 			productReference = B69C1CDA2DECBBE8005A096A /* SimpleRecipeApp.app */;
@@ -593,6 +611,29 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B6DFFEBB2DEEA2920056E4EC /* RecipeFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RecipeFeature;
+		};
+		B6DFFEBD2DEEA2920056E4EC /* RecipeInterface */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RecipeInterface;
+		};
+		B6DFFEBF2DEEA2920056E4EC /* RecipeModels */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RecipeModels;
+		};
+		B6DFFEC12DEEA29C0056E4EC /* Caching */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Caching;
+		};
+		B6DFFEC32DEEA29C0056E4EC /* CachingInterfaces */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CachingInterfaces;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B69C1CD22DECBBE8005A096A /* Project object */;
 }

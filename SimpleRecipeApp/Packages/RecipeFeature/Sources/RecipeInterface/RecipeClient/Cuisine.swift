@@ -22,7 +22,7 @@ public enum Cuisine: Equatable, Hashable, Sendable {
     case croatian
     case other(String)
 
-    var displayName: String {
+    public var displayName: String {
         switch self {
         case .other(let name):
             return String(NSString(string: name).capitalized)
@@ -47,7 +47,7 @@ extension Cuisine: CaseIterable {
         .portuguese,
         .russian,
         .tunisian,
-        .other("Something else!")
+        .other("Other")
     ]
 }
 
@@ -98,6 +98,44 @@ extension Cuisine: RawRepresentable {
     }
 
     public var rawValue: String {
-        return self.displayName
+        switch self {
+        case .american:
+            return "american"
+
+        case .malaysian:
+            return "malaysian"
+
+        case .british:
+            return "british"
+        case .canadian:
+            return "canadian"
+
+        case .italian:
+            return "italian"
+
+        case .tunisian:
+            return "tunisian"
+
+        case .french:
+            return "french"
+
+        case .greek:
+            return "greek"
+
+        case .polish:
+            return "polish"
+
+        case .portuguese:
+            return "portuguese"
+
+        case .russian:
+            return "russian"
+
+        case .croatian:
+            return "croatian"
+
+        case .other(let other):
+            return other
+        }
     }
 }

@@ -25,12 +25,15 @@ let package = Package(
             targets: ["RecipeModels"]
         ),
     ],
+    dependencies: [
+        .package(path: "../Caching")
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "RecipeFeature",
-            dependencies: ["RecipeInterface"]
+            dependencies: ["RecipeInterface", .product(name: "CachingInterfaces", package: "Caching")]
         ),
         .testTarget(
             name: "RecipeFeatureTests",
@@ -41,7 +44,7 @@ let package = Package(
         ),
         .target(
             name: "RecipeModels",
-            dependencies: ["RecipeInterface"]
+            dependencies: ["RecipeInterface", .product(name: "CachingInterfaces", package: "Caching")]
         ),
         .testTarget(
             name: "RecipeModelsTests",

@@ -15,7 +15,7 @@ import AppKit
 
 extension Image {
     /// Initializes a SwiftUI `Image` from data.
-    init?(data: Data) {
+    public init?(data: Data) {
         #if canImport(UIKit)
         if let uiImage = UIImage(data: data) {
             self.init(uiImage: uiImage)
