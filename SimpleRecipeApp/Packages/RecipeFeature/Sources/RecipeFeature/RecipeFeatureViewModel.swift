@@ -9,6 +9,7 @@ import CachingInterfaces
 import RecipeInterface
 import SwiftUI
 
+// TODO: Add testing for view model
 @MainActor
 public final class RecipeFeatureViewModel: ObservableObject {
     @Published var filteredRecipes: [Cuisine: [Recipe]]?
@@ -51,11 +52,11 @@ public final class RecipeFeatureViewModel: ObservableObject {
     private var lastForceRefreshed: Date = .distantPast
 
     private let client: RecipeClient
-    private let cacheManager: CacheManager
+    private let loadImage: @Sendable (URL) async throws -> Image
 
-    public init(client: RecipeClient, cacheManager: CacheManager) {
+    public init(client: RecipeClient, loadImage: @Sendable @escaping (URL) async throws -> Image) {
         self.client = client
-        self.cacheManager = cacheManager
+        self.loadImage = loadImage
 
         Task {
             await fetchRecipes(skipCache: false)
@@ -88,7 +89,7 @@ public final class RecipeFeatureViewModel: ObservableObject {
         }
         do {
             let detachedTask = Task.detached {
-                return try await self.cacheManager.fetchImage(from: url, cachePolicy: .useProtocolCachePolicy)
+                try await self.loadImage(url)
             }
             return try await detachedTask.value
         } catch {

@@ -12,15 +12,24 @@ import SwiftUI
 
 @main
 struct SimpleRecipeAppApp: App {
-    let cacheManager = NetworkCacheManager()
     var body: some Scene {
         WindowGroup {
             RecipeFeatureView(
                 viewModel: RecipeFeatureViewModel(
-                    client: FetchRecipeClient(cacheManager: cacheManager),
-                    cacheManager: cacheManager
-                )
+                    client: FetchRecipeClient(
+                        configuration: FetchRecipeClient.Configuration(
+                            url: FetchRecipeClient.sampleURL,
+                            sessionType: .caching(NetworkCacheManager.shared)
+                        )
+                    )
+                ) { url in
+                    try await NetworkCacheManager.shared.fetchImage(from: url)
+                }
             )
         }
     }
+}
+
+extension NetworkCacheManager {
+    static let shared: NetworkCacheManager = NetworkCacheManager()
 }

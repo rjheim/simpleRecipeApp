@@ -119,28 +119,28 @@ import RecipeInterface
 
 #Preview("Success") {
     RecipeFeatureView(
-        viewModel: RecipeFeatureViewModel(
-            client: RecipeClientSuccess.shared,
-            cacheManager: MockCacheManager(cachedData: [:], imageData: [:])
-        )
+        viewModel: RecipeFeatureViewModel(client: RecipeClientSuccess.shared) { url in
+            try await Task.sleep(for: .seconds(1.5))
+            return Image(systemName: "star")
+        }
     )
 }
 
 #Preview("Empty") {
     RecipeFeatureView(
-        viewModel: RecipeFeatureViewModel(
-            client: RecipeClientEmpty.shared,
-            cacheManager: MockCacheManager(cachedData: [:], imageData: [:])
-        )
+        viewModel: RecipeFeatureViewModel(client: RecipeClientEmpty.shared) { url in
+            try await Task.sleep(for: .seconds(0.5))
+            return Image(systemName: "star")
+        }
     )
 }
 
 #Preview("Failure") {
     RecipeFeatureView(
-        viewModel: RecipeFeatureViewModel(
-            client: RecipeClientFailure.shared,
-            cacheManager: MockCacheManager(cachedData: [:], imageData: [:])
-        )
+        viewModel: RecipeFeatureViewModel(client: RecipeClientFailure.shared) { url in
+                try await Task.sleep(for: .seconds(0.5))
+                return Image(systemName: "star")
+            }
     )
 }
 
