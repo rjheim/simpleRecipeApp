@@ -25,6 +25,7 @@ struct RecipeListItemView: View {
                 await loadImage(urlString)
             }
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary, lineWidth: 1))
         }
     }
 }

@@ -24,13 +24,17 @@ public struct RecipeFeatureView: View {
 
     @ViewBuilder
     func recipesView() -> some View {
-        if let filteredRecipes = viewModel.filteredRecipes {
+        switch viewModel.fetchState {
+        case .loading:
+            LoadingRecipesView()
+                .transition(.opacity)
+
+        case let .error(error):
+            recipeFetchErrorView(error: error)
+
+        case let .success(recipes, cuisine, searchText):
             List {
-                if filteredRecipes.isEmpty {
-                    noRecipeView()
-                } else {
-                    recipesPerCuisineView(filteredRecipes)
-                }
+                recipesPerCuisineView(recipes.filter(by: cuisine, searching: searchText))
             }
             .listStyle(.insetGrouped)
             .refreshable {
@@ -50,25 +54,25 @@ public struct RecipeFeatureView: View {
                     .pickerStyle(.menu)
                 }
             }
-        } else if viewModel.hasError {
-            recipeFetchErrorView()
-        } else {
-            LoadingRecipesView()
         }
     }
 
     @ViewBuilder
     func recipesPerCuisineView(_ filteredRecipes: [Cuisine: [Recipe]]) -> some View {
-        ForEach(Cuisine.allCases, id: \.self.rawValue) { cuisine in
-            if let recipes = filteredRecipes[cuisine] {
-                Section {
-                    ForEach(recipes) { recipe in
-                        RecipeListItemView(recipe: recipe) { urlString in
-                            await viewModel.loadImage(urlString: urlString)
+        if filteredRecipes.isEmpty {
+            noRecipeView()
+        } else {
+            ForEach(Cuisine.allCases, id: \.self.rawValue) { cuisine in
+                if let recipes = filteredRecipes[cuisine] {
+                    Section {
+                        ForEach(recipes) { recipe in
+                            RecipeListItemView(recipe: recipe) { urlString in
+                                await viewModel.loadImage(urlString: urlString)
+                            }
                         }
+                    } header: {
+                        Text(cuisine.displayName)
                     }
-                } header: {
-                    Text(cuisine.displayName)
                 }
             }
         }
@@ -90,7 +94,7 @@ public struct RecipeFeatureView: View {
     }
 
     @ViewBuilder
-    func recipeFetchErrorView() -> some View {
+    func recipeFetchErrorView(error: RecipeClientError) -> some View {
         VStack(spacing: 24) {
             Image(systemName: "exclamationmark.arrow.trianglehead.counterclockwise.rotate.90")
                 .resizable()
@@ -100,6 +104,13 @@ public struct RecipeFeatureView: View {
 
             Text("Oh No! Something went wrong. Please refresh or try again later.")
                 .multilineTextAlignment(.center)
+
+            // TODO: Probably wouldn't present this to the user, but you could have a more friendly error message that the use could use with customer support here.
+            if let description = error.errorDescription {
+                Text("Error Description: \(description)")
+                    .font(.caption2)
+                    .multilineTextAlignment(.center)
+            }
 
             Button("Refresh") {
                 Task {
@@ -120,7 +131,7 @@ import RecipeInterface
 #Preview("Success") {
     RecipeFeatureView(
         viewModel: RecipeFeatureViewModel(client: RecipeClientSuccess.shared) { url in
-            try await Task.sleep(for: .seconds(1.5))
+            try await Task.sleep(for: .seconds(0.2))
             return Image(systemName: "star")
         }
     )

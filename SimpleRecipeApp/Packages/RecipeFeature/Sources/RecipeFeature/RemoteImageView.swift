@@ -37,13 +37,21 @@ struct RemoteImageView: View {
                     .frame(width: width, height: height)
             } else {
                 ProgressView()
-                    .foregroundStyle(Color.accentColor)
+                    .tint(Color.accentColor)
                     .frame(width: width, height: height)
-                    .background(Color(uiColor: .secondarySystemBackground))
             }
         }
         .task {
             self.image = await loadImage(urlString)
         }
     }
+}
+
+#Preview {
+    RemoteImageView(
+        urlString: "testURL",
+        squareSize: 128) { urlString in
+            try? await Task.sleep(for: .seconds(2.0))
+            return Image(systemName: "star")
+        }
 }

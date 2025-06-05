@@ -12,24 +12,10 @@ import SwiftUI
 // TODO: Add testing for view model
 @MainActor
 public final class RecipeFeatureViewModel: ObservableObject {
-    @Published var filteredRecipes: [Cuisine: [Recipe]]?
+    @Published var fetchState: RecipesFetchState = .loading
+    @Published var selectedCuisine: Cuisine?
+    @Published var searchText: String = ""
 
-    private var recipes: [Recipe] = [] {
-        didSet {
-            self.filteredRecipes = recipes.filter(by: self.selectedCuisine, searching: self.searchText)
-        }
-    }
-    @Published var selectedCuisine: Cuisine? {
-        didSet {
-            self.filteredRecipes = recipes.filter(by: self.selectedCuisine, searching: self.searchText)
-        }
-    }
-    @Published var searchText: String = "" {
-        didSet {
-            self.filteredRecipes = recipes.filter(by: self.selectedCuisine, searching: self.searchText)
-        }
-    }
-    @Published var hasError: Bool = false
     var emptyText: String {
         let isSelectedCuisineEmpty = self.selectedCuisine == nil
         let isSearchTextEmpty = self.searchText.isEmpty
@@ -49,6 +35,7 @@ public final class RecipeFeatureViewModel: ObservableObject {
         }
 
     }
+
     private var lastForceRefreshed: Date = .distantPast
 
     private let client: RecipeClient
@@ -64,7 +51,11 @@ public final class RecipeFeatureViewModel: ObservableObject {
     }
 
     func fetchRecipes(skipCache: Bool) async {
-        self.hasError = false
+        if case .error = fetchState {
+            withAnimation {
+                self.fetchState = .loading
+            }
+        }
 
         // If refresh has occurred within the last 15 seconds, skip.
         if Date().timeIntervalSince(lastForceRefreshed) < 15 {
@@ -72,13 +63,18 @@ public final class RecipeFeatureViewModel: ObservableObject {
         }
 
         do {
-            self.recipes = try await client.recipes(skipCache: skipCache)
+            let recipes = try await client.recipes(skipCache: skipCache)
+            withAnimation(.easeIn(duration: 1.0)) {
+                self.fetchState = .success(recipes, self.selectedCuisine, self.searchText)
+            }
             // Only set last force refresh date if we skipped the cache.
             if skipCache {
                 self.lastForceRefreshed = Date()
             }
         } catch {
-            self.hasError = true
+            withAnimation {
+                self.fetchState = .error(error)
+            }
         }
     }
 
