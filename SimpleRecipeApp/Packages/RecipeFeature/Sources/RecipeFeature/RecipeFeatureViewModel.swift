@@ -93,6 +93,7 @@ public final class RecipeFeatureViewModel: ObservableObject {
         }
     }
 }
+
 // TODO: Add testing
 extension Array where Element == Recipe {
     func filter(by cuisine: Cuisine?, searching: String) -> [Cuisine: [Recipe]] {

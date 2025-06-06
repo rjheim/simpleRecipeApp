@@ -38,6 +38,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B678185D2DF2709C00992EB2 /* Exceptions for "SimpleRecipeApp" folder in "SimpleRecipeApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B69C1CD92DECBBE8005A096A /* SimpleRecipeApp */;
+		};
 		B69C1D062DECBC31005A096A /* Exceptions for "Packages" folder in "SimpleRecipeApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -51,6 +58,9 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B69C1CDC2DECBBE8005A096A /* SimpleRecipeApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B678185D2DF2709C00992EB2 /* Exceptions for "SimpleRecipeApp" folder in "SimpleRecipeApp" target */,
+			);
 			path = SimpleRecipeApp;
 			sourceTree = "<group>";
 		};
@@ -447,6 +457,7 @@
 				DEVELOPMENT_TEAM = UWCU35H739;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SimpleRecipeApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -477,6 +488,7 @@
 				DEVELOPMENT_TEAM = UWCU35H739;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SimpleRecipeApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

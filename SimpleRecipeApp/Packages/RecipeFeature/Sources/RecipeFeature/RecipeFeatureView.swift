@@ -35,6 +35,16 @@ public struct RecipeFeatureView: View {
         case let .success(recipes, cuisine, searchText):
             List {
                 recipesPerCuisineView(recipes.filter(by: cuisine, searching: searchText))
+                    .onChange(of: viewModel.selectedCuisine) { newValue in
+                        withAnimation {
+                            viewModel.fetchState = .success(recipes, newValue, searchText)
+                        }
+                    }
+                    .onChange(of: viewModel.searchText) { newValue in
+                        withAnimation {
+                            viewModel.fetchState = .success(recipes, cuisine, newValue)
+                        }
+                    }
             }
             .listStyle(.insetGrouped)
             .refreshable {
@@ -66,8 +76,14 @@ public struct RecipeFeatureView: View {
                 if let recipes = filteredRecipes[cuisine] {
                     Section {
                         ForEach(recipes) { recipe in
-                            RecipeListItemView(recipe: recipe) { urlString in
-                                await viewModel.loadImage(urlString: urlString)
+                            NavigationLink {
+                                RecipeDetailView(recipe: recipe) { urlString in
+                                    await viewModel.loadImage(urlString: urlString)
+                                }
+                            } label: {
+                                RecipeListItemView(recipe: recipe) { urlString in
+                                    await viewModel.loadImage(urlString: urlString)
+                                }
                             }
                         }
                     } header: {

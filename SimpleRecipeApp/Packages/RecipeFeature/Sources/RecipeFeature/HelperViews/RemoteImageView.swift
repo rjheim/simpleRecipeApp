@@ -11,10 +11,10 @@ struct RemoteImageView: View {
     @State var image: Image?
     let loadImage: (String?) async -> Image
     let urlString: String?
-    let width: CGFloat
-    let height: CGFloat
+    let width: CGFloat?
+    let height: CGFloat?
 
-    init(urlString: String?, width: CGFloat, height: CGFloat, loadImage: @escaping (String?) async -> Image) {
+    init(urlString: String?, width: CGFloat?, height: CGFloat?, loadImage: @escaping (String?) async -> Image) {
         self.loadImage = loadImage
         self.urlString = urlString
         self.width = width
@@ -26,6 +26,13 @@ struct RemoteImageView: View {
         self.urlString = urlString
         self.width = squareSize
         self.height = squareSize
+    }
+
+    init(urlString: String?, loadImage: @escaping (String?) async -> Image) {
+        self.loadImage = loadImage
+        self.urlString = urlString
+        self.width = nil
+        self.height = nil
     }
 
     var body: some View {
